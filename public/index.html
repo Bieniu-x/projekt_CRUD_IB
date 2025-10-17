@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>Mini CRUD – Products</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+  <h1 class="mb-4">Products CRUD</h1>
+
+  <form id="form" class="row g-2 mb-3">
+    <input type="hidden" id="id" />
+    <div class="col-md-3"><input class="form-control" id="name" placeholder="Name *" required></div>
+    <div class="col-md-2"><input class="form-control" id="sku" placeholder="SKU"></div>
+    <div class="col-md-2"><input class="form-control" id="price" placeholder="Price" type="number" step="0.01"></div>
+    <div class="col-md-2"><input class="form-control" id="category" placeholder="Category"></div>
+    <div class="col-md-2"><input class="form-control" id="stock" placeholder="Stock" type="number"></div>
+    <div class="col-md-1 d-grid"><button class="btn btn-primary">Save</button></div>
+  </form>
+
+  <div id="errors" class="text-danger mb-2"></div>
+
+  <table class="table table-sm">
+    <thead><tr>
+      <th>ID</th><th>Name</th><th>SKU</th><th>Price</th><th>Category</th><th>Stock</th><th></th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+<script>
+const api = ''; // zostaw puste gdy front i backend razem; jeśli backend osobno, wpisz URL backendu
+
+async function list(){
+  const res = await fetch(`${api}/api/products`);
+  const data = await res.json();
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  data.forEach(p=>{
+    tb.innerHTML += `<tr>
+      <td>${p.id}</td><td>${p.name}</td><td>${p.sku ?? ''}</td>
+      <td>${p.price ?? ''}</td><td>${p.category ?? ''}</td><td>${p.stock ?? ''}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick='edit(${JSON.stringify(p).replaceAll("'", "&apos;")})'>Edit</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="del(${p.id})">Del</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function edit(p){
+  id.value = p.id; name.value = p.name; sku.value = p.sku ?? '';
+  price.value = p.price ?? ''; category.value = p.category ?? '';
+  stock.value = p.stock ?? '';
+  errors.textContent = '';
+}
+
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const payload = {
+    name: name.value,
+    sku: sku.value || null,
+    price: price.value ? Number(price.value) : null,
+    category: category.value || null,
+    stock: stock.value ? Number(stock.value) : null
+  };
+  const isEdit = id.value;
+  const url = isEdit ? `${api}/api/products/${id.value}` : `${api}/api/products`;
+  const method = isEdit ? 'PUT' : 'POST';
+
+  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  if(!res.ok){
+    const r = await res.json().catch(()=>({}));
+    errors.textContent = (r.errors || [r.error || 'Error']).join(', ');
+    return;
+  }
+  form.reset(); id.value = ''; errors.textContent = '';
+  await list();
+});
+
+async function del(pid){
+  await fetch(`${api}/api/products/${pid}`, { method: 'DELETE' });
+  await list();
+}
+
+list();
+</script>
+</body>
+</html>
