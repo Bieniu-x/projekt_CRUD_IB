@@ -9,16 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ── ścieżki do /public
+// ── ścieżki
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PUBLIC_DIR = path.join(__dirname, "public");
-console.log("📂 Static dir:", PUBLIC_DIR);
 
-// ── statyczny frontend
-app.use(express.static(PUBLIC_DIR));
+// Static: serwujemy z katalogu głównego (tu leży index.html)
+const STATIC_DIR = path.join(__dirname, "public");
+console.log("📂 Static dir:", STATIC_DIR);
+app.use(express.static(STATIC_DIR));
 
-// ── MIGRACJA: nie blokuj startu UI, jeśli DB padnie
+// ── MIGRACJA: próba wykonania schema.sql (bez blokowania startu)
 async function ensureSchema() {
   try {
     const sql = readFileSync(path.join(__dirname, "schema.sql"), "utf8");
@@ -39,15 +39,19 @@ app.get("/api/products", async (_req, res, next) => {
   try {
     const { rows } = await pool.query("SELECT * FROM products ORDER BY id DESC");
     res.json(rows);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 app.get("/api/products/:id", async (req, res, next) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM products WHERE id=$1", [req.params.id]);
+    const { rows } = await pool.query("SELECT * FROM products WHERE id = $1", [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: "Not found" });
     res.json(rows[0]);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 app.post("/api/products", async (req, res, next) => {
@@ -55,17 +59,28 @@ app.post("/api/products", async (req, res, next) => {
     const errors = [];
     if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
-    if (req.body.stock != null && !Number.isInteger(Number(req.body.stock))) errors.push("stock: całkowita");
+    if (req.body.stock != null) {
+      const n = Number(req.body.stock);
+      if (!Number.isInteger(n) || n < 1 || n > 10) errors.push("rating: 1–10 (integer)");
+    }
     if (errors.length) return res.status(400).json({ errors });
 
     const { name, sku, price, category, stock } = req.body;
     const { rows } = await pool.query(
       `INSERT INTO products (name, sku, price, category, stock)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [name, sku || null, price != null ? Number(price) : null, category || null, stock != null ? Number(stock) : null]
+      [
+        name,
+        sku || null,
+        price != null ? Number(price) : null,
+        category || null,
+        stock != null ? Number(stock) : null,
+      ]
     );
     res.status(201).json(rows[0]);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 app.put("/api/products/:id", async (req, res, next) => {
@@ -73,36 +88,50 @@ app.put("/api/products/:id", async (req, res, next) => {
     const errors = [];
     if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
-    if (req.body.stock != null && !Number.isInteger(Number(req.body.stock))) errors.push("stock: całkowita");
+    if (req.body.stock != null) {
+      const n = Number(req.body.stock);
+      if (!Number.isInteger(n) || n < 1 || n > 10) errors.push("rating: 1–10 (integer)");
+    }
     if (errors.length) return res.status(400).json({ errors });
 
     const { name, sku, price, category, stock } = req.body;
     const { rows } = await pool.query(
       `UPDATE products
-       SET name=$1, sku=$2, price=$3, category=$4, stock=$5
-       WHERE id=$6
+       SET name = $1, sku = $2, price = $3, category = $4, stock = $5
+       WHERE id = $6
        RETURNING *`,
-      [name, sku || null, price != null ? Number(price) : null, category || null, stock != null ? Number(stock) : null, req.params.id]
+      [
+        name,
+        sku || null,
+        price != null ? Number(price) : null,
+        category || null,
+        stock != null ? Number(stock) : null,
+        req.params.id,
+      ]
     );
     if (!rows[0]) return res.status(404).json({ error: "Not found" });
     res.json(rows[0]);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 app.delete("/api/products/:id", async (req, res, next) => {
   try {
-    const r = await pool.query("DELETE FROM products WHERE id=$1", [req.params.id]);
+    const r = await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
     if (r.rowCount === 0) return res.status(404).json({ error: "Not found" });
     res.status(204).end();
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
-// ── na "/" i na wszystkie inne ścieżki podaj index.html
+// ── index.html na "/" oraz jako fallback
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+  res.sendFile(path.join(STATIC_DIR, "index.html"));
 });
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+  res.sendFile(path.join(STATIC_DIR, "index.html"));
 });
 
 // ── błędy
@@ -114,8 +143,7 @@ app.use((err, _req, res, _next) => {
 // ── start
 const PORT = process.env.PORT || 3000;
 ensureSchema().finally(() => {
-  const server = app.listen(PORT, () => {
-    const addr = server.address();
-    console.log(`✅ Server listening on port ${typeof addr === "string" ? addr : addr.port}`);
+  app.listen(PORT, () => {
+    console.log(`✅ Server listening on http://localhost:${PORT}`);
   });
 });

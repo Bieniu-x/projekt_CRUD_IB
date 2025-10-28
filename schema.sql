@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS products (
   stock INT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+
