@@ -7,8 +7,9 @@ import { pool } from "./db.js";
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ type: ['application/json', 'application/json; charset=utf-8', 'text/plain'] }));
 app.use(express.urlencoded({ extended: true }));
+
 
 
 // ── ścieżki
@@ -58,6 +59,11 @@ app.get("/api/products/:id", async (req, res, next) => {
 
 app.post("/api/products", async (req, res, next) => {
   try {
+    // Fallback dla body jako string
+    if (typeof req.body === 'string') {
+      try { req.body = JSON.parse(req.body || '{}'); } catch (_) { req.body = {}; }
+    }
+
     const errors = [];
     if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
@@ -80,13 +86,16 @@ app.post("/api/products", async (req, res, next) => {
       ]
     );
     res.status(201).json(rows[0]);
-  } catch (e) {
-    next(e);
-  }
+  } catch (e) { next(e); }
 });
+
 
 app.put("/api/products/:id", async (req, res, next) => {
   try {
+    if (typeof req.body === 'string') {
+      try { req.body = JSON.parse(req.body || '{}'); } catch (_) { req.body = {}; }
+    }
+
     const errors = [];
     if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
@@ -99,8 +108,8 @@ app.put("/api/products/:id", async (req, res, next) => {
     const { name, sku, price, category, stock } = req.body;
     const { rows } = await pool.query(
       `UPDATE products
-       SET name = $1, sku = $2, price = $3, category = $4, stock = $5
-       WHERE id = $6
+       SET name=$1, sku=$2, price=$3, category=$4, stock=$5
+       WHERE id=$6
        RETURNING *`,
       [
         name,
@@ -113,9 +122,7 @@ app.put("/api/products/:id", async (req, res, next) => {
     );
     if (!rows[0]) return res.status(404).json({ error: "Not found" });
     res.json(rows[0]);
-  } catch (e) {
-    next(e);
-  }
+  } catch (e) { next(e); }
 });
 
 app.delete("/api/products/:id", async (req, res, next) => {
