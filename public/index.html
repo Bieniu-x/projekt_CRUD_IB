@@ -7,41 +7,119 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="p-4">
-  <h1 class="mb-4">Game Library</h1>
-   
-  <form id="form" class="row g-2 mb-3">
+  <h1 class="mb-4">Game Library (CRUD)</h1>
+
+  <div class="mb-3 d-flex align-items-center gap-2">
+    <input id="authLogin" class="form-control" style="max-width: 200px" placeholder="login">
+    <input id="authPass"  class="form-control" style="max-width: 200px" placeholder="hasło" type="password">
+    <button class="btn btn-outline-primary" id="btnLogin">Log in</button>
+    <button class="btn btn-outline-secondary" id="btnRegister">Register</button>
+    <button class="btn btn-outline-danger d-none" id="btnLogout">Logout</button>
+    <span class="ms-3" id="whoami"></span>
+  </div>
+
+
+  <form id="form" class="row g-2 mb-3" novalidate>
     <input type="hidden" id="id" />
-    <div class="col-md-3"><input class="form-control" id="name" placeholder="Title *" required></div>
-    <div class="col-md-2"><input class="form-control" id="sku" placeholder="Platform"></div>
-    <div class="col-md-2"><input class="form-control" id="price" placeholder="Price" type="number" step="0.01"></div>
-    <div class="col-md-2"><input class="form-control" id="category" placeholder="Genre"></div>
-    <div class="col-md-2"><input class="form-control" id="stock" placeholder="Rating (1-10)" type="number" min="1" max="10"></div>
-    <div class="col-md-1 d-grid"><button class="btn btn-primary">Save</button></div>
+
+    <!-- Title (required) -->
+    <div class="col-md-3">
+      <input class="form-control" id="name" placeholder="Title *" required>
+    </div>
+
+    <!-- Platform -->
+    <div class="col-md-2">
+      <input class="form-control" id="sku" placeholder="Platform">
+    </div>
+
+    <!-- Price -->
+    <div class="col-md-2">
+      <input class="form-control" id="price" placeholder="Price" type="number" step="0.01" min="0">
+    </div>
+
+    <!-- Genre (select) -->
+    <div class="col-md-2">
+      <select class="form-select" id="category">
+        <option value="">Genre…</option>
+        <option>RPG</option>
+        <option>Action-Adventure</option>
+        <option>FPS</option>
+        <option>Roguelike</option>
+        <option>Strategy</option>
+        <option>Simulation</option>
+        <option>Racing</option>
+        <option>Sports</option>
+        <option>Horror</option>
+        <option>Puzzle</option>
+      </select>
+    </div>
+
+    <!-- Rating -->
+    <div class="col-md-2">
+      <input class="form-control" id="stock" placeholder="Rating (1–10)" type="number" min="1" max="10">
+    </div>
+
+    <div class="col-md-1 d-grid">
+      <button class="btn btn-primary" id="saveBtn" type="submit">Save</button>
+    </div>
   </form>
 
   <div id="errors" class="text-danger mb-2"></div>
 
-  <table class="table table-sm">
-    <thead><tr>
-      <th>ID</th><th>Name</th><th>SKU</th><th>Price</th><th>Category</th><th>Stock</th><th></th>
-    </tr></thead>
+  <table class="table table-sm align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Platform</th>
+        <th>Price</th>
+        <th>Genre</th>
+        <th>Rating</th>
+        <th style="width:140px"></th>
+      </tr>
+    </thead>
     <tbody id="tbody"></tbody>
   </table>
 
 <script>
-const api = ''; // zostaw puste gdy front i backend razem; jeśli backend osobno, wpisz URL backendu
+const el = {
+  form: document.getElementById('form'),
+  id: document.getElementById('id'),
+  name: document.getElementById('name'),           // Title
+  sku: document.getElementById('sku'),             // Platform
+  price: document.getElementById('price'),         // Price
+  category: document.getElementById('category'),   // Genre
+  stock: document.getElementById('stock'),         // Rating
+  errors: document.getElementById('errors'),
+  tbody: document.getElementById('tbody'),
+  saveBtn: document.getElementById('saveBtn')
+};
+
+// same-origin (frontend serwowany przez ten sam serwer co API)
+const api = '';
+
+function fmtPrice(v){
+  if (v === null || v === undefined || v === '') return '';
+  const n = Number(v);
+  if (Number.isNaN(n)) return '';
+  return n.toFixed(2);
+}
 
 async function list(){
   const res = await fetch(`${api}/api/products`);
   const data = await res.json();
-  const tb = document.getElementById('tbody');
-  tb.innerHTML = '';
+  el.tbody.innerHTML = '';
   data.forEach(p=>{
-    tb.innerHTML += `<tr>
-      <td>${p.id}</td><td>${p.name}</td><td>${p.sku ?? ''}</td>
-      <td>${p.price ?? ''}</td><td>${p.category ?? ''}</td><td>${p.stock ?? ''}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary me-1" onclick='edit(${JSON.stringify(p).replaceAll("'", "&apos;")})'>Edit</button>
+    el.tbody.innerHTML += `<tr>
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>${p.sku ?? ''}</td>
+      <td>${fmtPrice(p.price)}</td>
+      <td>${p.category ?? ''}</td>
+      <td>${p.stock ?? ''}</td>
+      <td class="text-nowrap">
+        <button class="btn btn-sm btn-outline-secondary me-1"
+          onclick='edit(${JSON.stringify(p).replaceAll("'", "&apos;")})'>Edit</button>
         <button class="btn btn-sm btn-outline-danger" onclick="del(${p.id})">Del</button>
       </td>
     </tr>`;
@@ -49,33 +127,83 @@ async function list(){
 }
 
 function edit(p){
-  id.value = p.id; name.value = p.name; sku.value = p.sku ?? '';
-  price.value = p.price ?? ''; category.value = p.category ?? '';
-  stock.value = p.stock ?? '';
-  errors.textContent = '';
+  el.id.value = p.id;
+  el.name.value = p.name ?? '';
+  el.sku.value = p.sku ?? '';
+  el.price.value = p.price ?? '';
+  el.category.value = p.category ?? '';
+  el.stock.value = p.stock ?? '';
+  el.errors.textContent = '';
+  el.name.focus();
 }
 
-form.addEventListener('submit', async (e)=>{
+function validateFront(){
+  const title = (el.name.value || '').trim();
+  if (!title) {
+    el.errors.textContent = 'Title is required.';
+    el.name.focus();
+    return false;
+  }
+  if (el.stock.value) {
+    const r = Number(el.stock.value);
+    if (r < 1 || r > 10) {
+      el.errors.textContent = 'Rating must be between 1 and 10.';
+      el.stock.focus();
+      return false;
+    }
+  }
+  if (el.price.value) {
+    const p = Number(el.price.value);
+    if (p < 0) {
+      el.errors.textContent = 'Price must be >= 0.';
+      el.price.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+el.form.addEventListener('submit', async (e)=>{
   e.preventDefault();
+  el.errors.textContent = '';
+
+  if (!validateFront()) return;
+
   const payload = {
-    name: name.value,
-    sku: sku.value || null,
-    price: price.value ? Number(price.value) : null,
-    category: category.value || null,
-    stock: stock.value ? Number(stock.value) : null
+    name: el.name.value.trim(),
+    sku: el.sku.value.trim() || null,
+    price: el.price.value ? Number(el.price.value) : null,
+    category: el.category.value || null,
+    stock: el.stock.value ? Number(el.stock.value) : null
   };
-  const isEdit = id.value;
-  const url = isEdit ? `${api}/api/products/${id.value}` : `${api}/api/products`;
+
+  const isEdit = !!el.id.value;
+  const url = isEdit ? `${api}/api/products/${el.id.value}` : `${api}/api/products`;
   const method = isEdit ? 'PUT' : 'POST';
 
-  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-  if(!res.ok){
-    const r = await res.json().catch(()=>({}));
-    errors.textContent = (r.errors || [r.error || 'Error']).join(', ');
-    return;
+  try {
+    el.saveBtn.disabled = true;
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const r = await res.json().catch(()=>({}));
+      el.errors.textContent = (r.errors || [r.error || 'Error']).join(', ');
+      return;
+    }
+
+    el.form.reset();
+    el.id.value = '';
+    await list();
+  } catch (err) {
+    el.errors.textContent = 'Network error. Try again.';
+  } finally {
+    el.saveBtn.disabled = false;
   }
-  form.reset(); id.value = ''; errors.textContent = '';
-  await list();
 });
 
 async function del(pid){
@@ -84,6 +212,56 @@ async function del(pid){
 }
 
 list();
+
+const auth = {
+  login: document.getElementById('authLogin'),
+  pass:  document.getElementById('authPass'),
+  btnLogin: document.getElementById('btnLogin'),
+  btnRegister: document.getElementById('btnRegister'),
+  btnLogout: document.getElementById('btnLogout'),
+  who: document.getElementById('whoami')
+};
+
+async function me(){
+  const r = await fetch(`${api}/me`, { credentials: 'include' });
+  if (r.ok) {
+    const u = await r.json();
+    auth.who.textContent = `Zalogowany: ${u.login} (${u.role})`;
+    auth.btnLogout.classList.remove('d-none');
+    // odblokuj formularz CRUD
+    el.name.disabled = false; el.sku.disabled = false; el.price.disabled = false; el.category.disabled = false; el.stock.disabled = false;
+  } else {
+    auth.who.textContent = `Nie zalogowany`;
+    auth.btnLogout.classList.add('d-none');
+    // formularz działa, ale zapis wymaga logowania – zostaw jak wolisz
+  }
+}
+
+auth.btnLogin.onclick = async ()=>{
+  const payload = { login: auth.login.value, password: auth.pass.value };
+  const r = await fetch(`${api}/login`, { method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(payload) });
+  const j = await r.json().catch(()=> ({}));
+  if(!r.ok){ el.errors.textContent = j.error || (j.errors||[]).join(', ') || 'Login error'; return; }
+  el.errors.textContent=''; auth.pass.value='';
+  await me(); await list();
+};
+
+auth.btnRegister.onclick = async ()=>{
+  const payload = { login: auth.login.value, password: auth.pass.value };
+  const r = await fetch(`${api}/register`, { method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(payload) });
+  const j = await r.json().catch(()=> ({}));
+  if(!r.ok){ el.errors.textContent = j.error || (j.errors||[]).join(', ') || 'Register error'; return; }
+  el.errors.textContent=''; auth.pass.value='';
+  await me(); await list();
+};
+
+auth.btnLogout.onclick = async ()=>{
+  await fetch(`${api}/logout`, { method: 'POST', credentials:'include' });
+  await me(); await list();
+};
+
+me();
+
 </script>
 </body>
 </html>

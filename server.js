@@ -65,7 +65,7 @@ app.post("/api/products", async (req, res, next) => {
     }
 
     const errors = [];
-    if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
+    if (!req.body.name) errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
     if (req.body.stock != null) {
       const n = Number(req.body.stock);
@@ -97,7 +97,7 @@ app.put("/api/products/:id", async (req, res, next) => {
     }
 
     const errors = [];
-    if (!req.body.name || String(req.body.name).trim() === "") errors.push("name: wymagane");
+    if (!req.body.name) errors.push("name: wymagane");
     if (req.body.price != null && isNaN(Number(req.body.price))) errors.push("price: liczba");
     if (req.body.stock != null) {
       const n = Number(req.body.stock);
