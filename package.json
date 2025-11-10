@@ -1,0 +1,20 @@
+{
+  "name": "game-library-crud",
+  "version": "1.0.0",
+  "description": "Najprostszy CRUD: Express + SQLite + czysty HTML/JS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
