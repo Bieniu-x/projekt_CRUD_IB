@@ -1,0 +1,31 @@
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, Arial, sans-serif;
+  background: #111;
+  color: #eee;
+  margin: 0;
+  padding: 24px;
+}
+.container { max-width: 900px; margin: 0 auto; }
+h1 { margin-top: 0; }
+
+form {
+  background: #1b1b1b;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #2a2a2a;
+}
+.row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin: 8px 0; }
+input, textarea, button {
+  padding: 8px 10px; border-radius: 8px; border: 1px solid #333; background: #0f0f0f; color: #eee;
+}
+button { cursor: pointer; }
+button.secondary { background: #222; }
+
+.error { color: #ff6b6b; margin: 8px 0 0; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 8px; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
+tr.editing { background: #202020; }
+.actions button { margin-right: 6px; }

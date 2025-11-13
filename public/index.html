@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Game Library — najprostszy CRUD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./stylesheet.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎮 Game Library</h1>
+
+      <form id="game-form">
+        <input type="hidden" id="game-id" />
+        <div class="row">
+          <label>Tytuł</label>
+          <input id="title" required minlength="3" maxlength="100" />
+        </div>
+        <div class="row">
+          <label>Rok</label>
+          <input id="year" type="number" min="1970" max="2100" required />
+        </div>
+        <div class="row">
+          <label>Ocena</label>
+          <input id="rating" type="number" min="1" max="10" required />
+        </div>
+        <div class="row">
+          <label>Opis (opcjonalny)</label>
+          <textarea id="description" rows="2"></textarea>
+        </div>
+
+        <div class="row">
+          <button type="submit" id="save-btn">Dodaj</button>
+          <button type="button" id="cancel-btn" class="secondary" hidden>Anuluj edycję</button>
+        </div>
+
+        <p id="error" class="error" hidden></p>
+      </form>
+
+      <table id="games-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tytuł</th>
+            <th>Rok</th>
+            <th>Ocena</th>
+            <th>Opis</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
