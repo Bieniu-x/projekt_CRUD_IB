@@ -1,6 +1,11 @@
 const express = require('express');
 const db = require('../../db');
+const { authMiddleware } = require('../../middleware/auth');
 const router = express.Router();
+
+router.use(authMiddleware);
+
+
 
 // proste pomocnicze walidacje
 function validateGame(input) {

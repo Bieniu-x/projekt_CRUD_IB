@@ -1,9 +1,13 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+const cookieParser = require('cookie-parser');
+
 
 // parsowanie JSON w body
 app.use(express.json());
+app.use(cookieParser());
+
 
 // serwuj pliki statyczne z /public (frontend)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -11,6 +15,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // API dla gier
 const gamesRoutes = require('./entities/games/routes');
 app.use('/api/games', gamesRoutes);
+
+// API dla użytkowników 
+const usersRoutes = require('./entities/users/routes');
+app.use('/api/users', usersRoutes);
 
 // prosty healthcheck
 app.get('/api/health', (_req, res) => {

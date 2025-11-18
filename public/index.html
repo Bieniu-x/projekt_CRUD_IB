@@ -1,57 +1,154 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
   <head>
-    <meta charset="utf-8" />
-    <title>Game Library — najprostszy CRUD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="./stylesheet.css" />
+    <meta charset="UTF-8" />
+    <title>Game Library</title>
+    <link rel="stylesheet" href="stylesheet.css" />
   </head>
   <body>
-    <div class="container">
+    <main class="container">
       <h1>Game Library</h1>
 
-      <form id="game-form">
-        <input type="hidden" id="game-id" />
-        <div class="row">
-          <label>Tytuł</label>
-          <input id="title" required minlength="3" maxlength="100" />
-        </div>
-        <div class="row">
-          <label>Rok</label>
-          <input id="year" type="number" min="1970" max="2100" required />
-        </div>
-        <div class="row">
-          <label>Ocena</label>
-          <input id="rating" type="number" min="1" max="10" required />
-        </div>
-        <div class="row">
-          <label>Opis (opcjonalny)</label>
-          <textarea id="description" rows="2"></textarea>
-        </div>
+      <!-- SEK CJA: LOGOWANIE / REJESTRACJA -->
+      <section id="authSection">
+        <h2>Logowanie / Rejestracja</h2>
 
-        <div class="row">
-          <button type="submit" id="save-btn">Dodaj</button>
-          <button type="button" id="cancel-btn" class="secondary" hidden>Anuluj edycję</button>
+        <div id="authMessage" style="margin-bottom: 1rem;"></div>
+
+        <div class="auth-forms">
+          <!-- Formularz logowania -->
+          <form id="loginForm" class="card">
+            <h3>Logowanie</h3>
+            <label>
+              Nazwa użytkownika
+              <input
+                type="text"
+                name="username"
+                required
+                autocomplete="username"
+              />
+            </label>
+
+            <label>
+              Hasło
+              <input
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+              />
+            </label>
+
+            <button type="submit">Zaloguj</button>
+          </form>
+
+          <!-- Formularz rejestracji -->
+          <form id="registerForm" class="card">
+            <h3>Rejestracja</h3>
+            <label>
+              Nazwa użytkownika
+              <input
+                type="text"
+                name="username"
+                required
+                minlength="3"
+                maxlength="50"
+              />
+            </label>
+
+            <label>
+              E-mail
+              <input
+                type="email"
+                name="email"
+                required
+              />
+            </label>
+
+            <label>
+              Hasło (min. 6 znaków)
+              <input
+                type="password"
+                name="password"
+                required
+                minlength="6"
+              />
+            </label>
+
+            <button type="submit">Zarejestruj</button>
+          </form>
         </div>
+      </section>
 
-        <p id="error" class="error" hidden></p>
-      </form>
+      <!-- SEK CJA: PANEL CRUD – WIDOCZNY TYLKO PO ZALOGOWANIU -->
+      <section id="appSection" style="display: none;">
+        <header class="app-header">
+          <div>
+            Zalogowany jako:
+            <strong id="userName"></strong>
+          </div>
+          <button id="logoutBtn">Wyloguj</button>
+        </header>
 
-      <table id="games-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tytuł</th>
-            <th>Rok</th>
-            <th>Ocena</th>
-            <th>Opis</th>
-            <th>Akcje</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+        <!-- Formularz dodawania / edycji gry -->
+        <section class="card" id="gameFormSection">
+          <h2>Dodaj / edytuj grę</h2>
 
-    <script src="./script.js"></script>
+          <form id="gameForm">
+            <label>
+              Tytuł
+              <input type="text" id="titleInput" required minlength="1" maxlength="100" />
+            </label>
+
+            <label>
+              Rok
+              <input type="number" id="yearInput" required min="1950" max="2100" />
+            </label>
+
+            <label>
+              Ocena
+              <input
+                type="number"
+                id="ratingInput"
+                required
+                min="1"
+                max="10"
+                step="0.1"
+              />
+            </label>
+
+            <label>
+              Opis (opcjonalny)
+              <textarea id="descriptionInput" rows="3"></textarea>
+            </label>
+
+            <button type="submit" id="saveButton">Dodaj</button>
+            <button type="button" id="cancelEditButton" style="display: none;">
+              Anuluj edycję
+            </button>
+          </form>
+        </section>
+
+        <!-- Tabela z grami -->
+        <section class="card">
+          <h2>Lista gier</h2>
+          <table id="gamesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tytuł</th>
+                <th>Rok</th>
+                <th>Ocena</th>
+                <th>Opis</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
   </body>
 </html>
