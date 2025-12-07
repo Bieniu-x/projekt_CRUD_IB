@@ -1,9 +1,14 @@
+// db.js – połączenie z SQLite + migracje
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 
-// plik bazy leży w katalogu projektu
-const DB_PATH = path.join(__dirname, 'games.db');
+// Jeśli ustawiono DB_FILE (np. w testach: :memory:),
+// to użyj tej wartości. W przeciwnym razie zapisz do pliku games.db.
+const DB_PATH = process.env.DB_FILE
+  ? process.env.DB_FILE
+  : path.join(__dirname, 'games.db');
+
 const db = new Database(DB_PATH);
 
 // uruchom wszystkie migracje *.sql po kolei
@@ -27,3 +32,6 @@ function runMigrations() {
 runMigrations();
 
 module.exports = db;
+module.exports.db = db;
+module.exports.runMigrations = runMigrations;
+

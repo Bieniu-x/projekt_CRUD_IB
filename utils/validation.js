@@ -1,9 +1,13 @@
-// utils/validation.js
-function errorResponse(status, errors = [], message) {
+function errorResponse(status, fieldErrors = [], message) {
+  const finalMessage =
+    message ||
+    (Array.isArray(fieldErrors) && fieldErrors[0] && fieldErrors[0].message) ||
+    '';
+
   return {
     status,
-    errors,
-    message: message || (errors[0] && errors[0].message) || 'Błąd walidacji',
+    fieldErrors,   
+    message: finalMessage,
   };
 }
 
